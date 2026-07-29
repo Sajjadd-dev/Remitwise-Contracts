@@ -2234,3 +2234,29 @@ fn test_same_address_symmetric() {
     let b = soroban_sdk::Address::generate(&env);
     assert_eq!(crate::same_address(&a, &b), crate::same_address(&b, &a));
 }
+
+// ============================================================================
+// require_registered_operator tests (#1182)
+// ============================================================================
+
+#[test]
+fn test_require_registered_operator_success() {
+    let env = Env::default();
+    let caller = Address::generate(&env);
+    
+    // Register the operator
+    env.storage().instance().set(&symbol_short!("OPERATOR"), &true);
+    
+    let result = require_registered_operator(&env, &caller);
+    assert_eq!(result, Ok(()));
+}
+
+#[test]
+fn test_require_registered_operator_fails_if_missing() {
+    let env = Env::default();
+    let caller = Address::generate(&env);
+    
+    // Missing operator registration
+    let result = require_registered_operator(&env, &caller);
+    assert_eq!(result, Err(OperatorError::NotRegistered));
+}
